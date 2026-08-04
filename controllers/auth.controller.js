@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 
+const ApiError = require("../utils/apiError");
 const User = require("../models/user.model");
 
 const signUp = async (req, res, next) => {
@@ -28,7 +29,7 @@ const login = async (req, res, next) => {
   const user = await User.findOne({ email }).select("+password");
 
   if (!user) {
-    return next(new Error("Invalid email or password"));
+    return next(new ApiError("Invalid email or password", 401));
   }
 
   res.status(200).json({
