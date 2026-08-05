@@ -1,30 +1,21 @@
 const express = require("express");
 const cors = require("cors");
 
-const globalErrorHandler = require("./middlewares/error.middleware");
+const authRouter = require("./routers/auth.router");
+const errorMiddleware = require("./middlewares/error.middleware");
 const ApiError = require("./utils/apiError");
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 
-// Base Route / Health Check
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "success",
-    message: "Welcome to the Exam Platform API",
-    timestamp: new Date(),
-  });
-});
+app.use("/api/v1/auth", authRouter);
 
-// Handling 404
 app.use((req, res, next) => {
   next(new ApiError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Global Error Handler
-app.use(globalErrorHandler);
+app.use(errorMiddleware);
 
 module.exports = app;
