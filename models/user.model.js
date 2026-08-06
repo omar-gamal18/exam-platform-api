@@ -21,18 +21,16 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["user", "pending_instructor", "instructor", "admin"],
-      default: "user",
+      enum: ["student", "pending_instructor", "instructor", "admin"],
+      default: "student",
     },
     department: {
       type: String,
       enum: ["cs", "it", "is", "general"],
-      default: "user",
       required: function () {
         return this.role !== "admin";
       },
     },
-
     year: {
       type: Number,
       min: 1,

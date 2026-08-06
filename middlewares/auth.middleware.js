@@ -22,7 +22,7 @@ const protect = async (req, res, next) => {
   }
 
   // 2) Verify token (no change happens, expired token)
-  const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   // 3) Check if user exists
   const currentUser = await User.findById(decoded.userId);
@@ -68,4 +68,4 @@ const allowedTo =
     next();
   };
 
-module.exports = { restrictTo };
+module.exports = { protect, allowedTo };

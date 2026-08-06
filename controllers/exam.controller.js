@@ -1,4 +1,4 @@
-const Exam = require("../models/examModel");
+const Exam = require("../models/exam.model");
 
 const getAllExams = async (req, res, next) => {
   const exams = await Exam.find();
