@@ -58,7 +58,7 @@ const protect = async (req, res, next) => {
 
 const allowedTo =
   (...roles) =>
-  async (req, res, next) => {
+  (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError("you are not allowed to access this route", 403),
