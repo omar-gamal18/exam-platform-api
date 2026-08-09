@@ -6,15 +6,17 @@ const questionSchema = new mongoose.Schema(
     questionText: {
       type: String,
       required: [true, "provide the question text please"],
-      questionType: {
-        type: String,
-        enum: ["mcq", "true_false"],
-      },
-      points: {
-        type: Number,
-        min: 1,
-        max: 2,
-      },
+      trim: true,
+    },
+    questionType: {
+      type: String,
+      enum: ["mcq", "true_false"],
+      required: [true, "provide the question type please"],
+    },
+    points: {
+      type: Number,
+      min: 1,
+      required: [true, "provide the answer points please"],
     },
     options: [
       {
@@ -24,7 +26,12 @@ const questionSchema = new mongoose.Schema(
           required: [true, "provide the quetion text"],
         },
       },
+      { _id: false },
     ],
+    correctOptionId: {
+      type: Number,
+      required: [true, "provide the correct option ID please"],
+    },
   },
   { _id: false },
 );
@@ -39,9 +46,21 @@ const examSchema = new mongoose.Schema(
     subject: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Subject",
+      required: [true, "Exam must belong to a subject"],
     },
-
-    duration: {
+    department: {},
+    year: {
+      type: Number,
+      min: 1,
+      max: 4,
+      required: true,
+    },
+    examType: {
+      type: String,
+      enum: ["midterm", "oral", "final", "quiz-chapter"],
+      required: true,
+    },
+    durationMinutes: {
       type: Number,
       required: [true, "Exam must have a duration"],
     },

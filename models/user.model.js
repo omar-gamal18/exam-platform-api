@@ -39,6 +39,13 @@ const userSchema = mongoose.Schema(
         return this.role === "student";
       },
     },
+
+    subjects: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Subject",
+      },
+    ],
   },
   { timestamps: true },
 );
