@@ -13,9 +13,8 @@ const router = express.Router();
 router.use(authMiddleware.protect);
 
 router.use(authMiddleware.allowedTo("admin"));
-router
-  .route("/")
-  .get(listAllSubjects)
-  .post(createSubject)
-  .patch(updateSubject)
-  .delete(deleteSubject);
+router.route("/").get(listAllSubjects).post(createSubject);
+
+router.route("/:id").patch(updateSubject).delete(deleteSubject);
+
+module.exports = router;

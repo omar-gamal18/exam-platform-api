@@ -20,7 +20,7 @@ const listAllSubjects = async (req, res, next) => {
     status: "success",
     results: subjects.length,
     data: {
-      subject,
+      subjects,
     },
   });
 };
@@ -29,7 +29,7 @@ const updateSubject = async (req, res, next) => {
   const { id } = req.params;
 
   const subject = await Subject.findByIdAndUpdate(id, req.body, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 
