@@ -9,7 +9,7 @@ const subjectSchema = new mongoose.Schema({
     unique: [true, "this subject is already exist"],
   },
   department: {
-    type: "string",
+    type: [String],
     required: [true, "provide the subject departement"],
     enum: ["cs", "is", "it", "general"],
   },
