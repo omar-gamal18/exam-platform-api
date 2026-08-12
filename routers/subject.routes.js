@@ -6,15 +6,18 @@ const {
   listAllSubjects,
   updateSubject,
   deleteSubject,
+  getMySubjects,
 } = require("../controllers/subject.controller");
 
 const router = express.Router();
 
 router.use(authMiddleware.protect);
 
-router.use(authMiddleware.allowedTo("admin"));
-router.route("/").get(listAllSubjects).post(createSubject);
+router.get("/mine", authMiddleware.allowedTo("instructor"), getMySubjects);
 
+router.use(authMiddleware.allowedTo("admin"));
+
+router.route("/").get(listAllSubjects).post(createSubject);
 router.route("/:id").patch(updateSubject).delete(deleteSubject);
 
 module.exports = router;

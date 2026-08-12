@@ -57,9 +57,22 @@ const deleteSubject = async (req, res, next) => {
   res.status(204).json();
 };
 
+const getMySubjects = async (req, res, next) => {
+  const subjects = await req.user.populate("subjects");
+
+  res.status(200).json({
+    status: "success",
+    results: subjects.length,
+    data: {
+      subjects,
+    },
+  });
+};
+
 module.exports = {
   createSubject,
   listAllSubjects,
   updateSubject,
   deleteSubject,
+  getMySubjects,
 };
