@@ -1,6 +1,7 @@
 const express = require("express");
 
 const authMiddleware = require("../middlewares/auth.middleware");
+
 const {
   createSubject,
   listAllSubjects,
@@ -8,7 +9,9 @@ const {
   deleteSubject,
   getMySubjects,
 } = require("../controllers/subject.controller");
+
 const validate = require("../middlewares/validate");
+
 const {
   createSubjectValidator,
   updateSubjectValidator,
@@ -23,11 +26,13 @@ router.get("/mine", authMiddleware.allowedTo("instructor"), getMySubjects);
 
 router.use(authMiddleware.allowedTo("admin"));
 
-router.route("/")
+router
+  .route("/")
   .get(listAllSubjects)
   .post(validate(createSubjectValidator), createSubject);
 
-router.route("/:id")
+router
+  .route("/:id")
   .patch(validate(updateSubjectValidator), updateSubject)
   .delete(validate(deleteSubjectValidator), deleteSubject);
 

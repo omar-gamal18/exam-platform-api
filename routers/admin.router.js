@@ -1,13 +1,16 @@
 const express = require("express");
 
 const { protect, allowedTo } = require("../middlewares/auth.middleware");
+
 const {
   listPendingInstructors,
   approveInstructor,
   rejectInstructor,
   assignSubjectsToInstructor,
 } = require("../controllers/admin.controller");
+
 const validate = require("../middlewares/validate");
+
 const {
   approveInstructorValidator,
   rejectInstructorValidator,
