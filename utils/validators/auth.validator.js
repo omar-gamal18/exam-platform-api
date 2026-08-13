@@ -17,13 +17,18 @@ const signUpValidator = [
     .isLength({ min: 6 })
     .withMessage("Password must be at least 6 characters long"),
 
-  body("department").trim().notEmpty().withMessage("Department is required"),
+  body("department")
+    .trim()
+    .notEmpty()
+    .withMessage("Department is required")
+    .isIn(["cs", "it", "is", "general"])
+    .withMessage("Department must be one of: cs, it, is, general"),
 
   body("year")
     .notEmpty()
     .withMessage("Year is required")
-    .isInt({ min: 1, max: 5 })
-    .withMessage("Year must be between 1 and 5")
+    .isInt({ min: 1, max: 4 })
+    .withMessage("Year must be between 1 and 4")
     .toInt(),
 ];
 
