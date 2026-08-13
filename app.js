@@ -3,7 +3,6 @@ const cors = require("cors");
 
 const authRouter = require("./routers/auth.router");
 const userRouter = require("./routers/user.router");
-const instructorRequestRouter = require("./routers/instructorRequest.router");
 const subjectRouter = require("./routers/subject.routes");
 const adminRouter = require("./routers/admin.router");
 const errorMiddleware = require("./middlewares/error.middleware");
@@ -16,7 +15,6 @@ app.use(express.json());
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/instructor-requests", instructorRequestRouter);
 app.use("/api/v1/subjects", subjectRouter);
 app.use("/api/v1/admins", adminRouter);
 
