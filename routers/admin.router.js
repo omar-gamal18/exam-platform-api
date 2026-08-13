@@ -1,4 +1,5 @@
 const express = require("express");
+
 const { protect, allowedTo } = require("../middlewares/auth.middleware");
 const {
   listPendingInstructors,

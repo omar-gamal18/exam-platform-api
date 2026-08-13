@@ -12,4 +12,20 @@ const getMe = (req, res, next) => {
   });
 };
 
-module.exports = { getMe };
+const requestInstructor = async (req, res, next) => {
+  const user = await User.findOne({ _id: req.user._id });
+
+  user.role = "pending_instructor";
+
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "your request sent to an admin wait for response...",
+  });
+};
+
+module.exports = {
+  requestInstructor,
+  getMe,
+};
