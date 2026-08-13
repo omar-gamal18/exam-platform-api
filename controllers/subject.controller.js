@@ -58,7 +58,8 @@ const deleteSubject = async (req, res, next) => {
 };
 
 const getMySubjects = async (req, res, next) => {
-  const subjects = await req.user.populate("subjects");
+  const user = await req.user.populate("subjects");
+  const subjects = user.subjects;
 
   res.status(200).json({
     status: "success",

@@ -24,7 +24,9 @@ const approveInstructor = async (req, res, next) => {
   }
 
   if (user.role !== "pending_instructor") {
-    return next(new AppError("User is not currently a pending instructor.", 400));
+    return next(
+      new AppError("User is not currently a pending instructor.", 400),
+    );
   }
 
   user.role = "instructor";
@@ -46,7 +48,9 @@ const rejectInstructor = async (req, res, next) => {
   }
 
   if (user.role !== "pending_instructor") {
-    return next(new AppError("User is not currently a pending instructor.", 400));
+    return next(
+      new AppError("User is not currently a pending instructor.", 400),
+    );
   }
 
   user.role = "student";
@@ -68,6 +72,10 @@ const assignSubjectsToInstructor = async (req, res, next) => {
     return next(new AppError("User not found.", 404));
   }
 
+  if (user.role !== "instructor") {
+    return next(new AppError("This Route Is Only For Instructors ", 404));
+  }
+
   const foundSubjects = await Subject.find({
     _id: { $in: subjects },
   }).select("_id");
@@ -85,7 +93,7 @@ const assignSubjectsToInstructor = async (req, res, next) => {
   res.status(200).json({
     status: "success",
     data: {
-      user,
+      user: await user.populate("subjects"),
     },
   });
 };
