@@ -49,7 +49,7 @@ const examSchema = new mongoose.Schema(
       required: [true, "Exam must belong to a subject"],
     },
     department: {
-      type: String,
+      type: [String],
       required: [true, "Exam must have a department"],
     },
     year: {
