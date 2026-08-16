@@ -23,7 +23,7 @@ const questionSchema = new mongoose.Schema(
         optionId: Number,
         text: {
           type: String,
-          required: [true, "provide the quetion text"],
+          required: [true, "provide the question text"],
         },
       },
       { _id: false },
@@ -48,7 +48,10 @@ const examSchema = new mongoose.Schema(
       ref: "Subject",
       required: [true, "Exam must belong to a subject"],
     },
-    department: {},
+    department: {
+      type: String,
+      required: [true, "Exam must have a department"],
+    },
     year: {
       type: Number,
       min: 1,
@@ -64,11 +67,11 @@ const examSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Exam must have a duration"],
     },
-    openDate: {
+    opensAt: {
       type: Date,
       required: [true, "Exam must have an open date"],
     },
-    closeDate: {
+    closesAt: {
       type: Date,
       required: [true, "Exam must have a close date"],
     },

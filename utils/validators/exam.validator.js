@@ -6,8 +6,10 @@ const examValidatorRules = [
     .withMessage("Subject ID must be a valid Mongo ID"),
 
   body("examType")
-    .isIn(["midterm", "final", "practical", "quiz-chapter"])
-    .withMessage("Exam type must be one of: midterm, final, practical, quiz-chapter"),
+    .isIn(["midterm", "final", "oral", "quiz-chapter"])
+    .withMessage(
+      "Exam type must be one of: midterm, final, oral, quiz-chapter",
+    ),
 
   body("opensAt")
     .isISO8601()
@@ -36,16 +38,26 @@ const examValidatorRules = [
         const q = questions[i];
         const questionLabel = `Question ${i + 1}`;
 
-        if (!q.questionText || typeof q.questionText !== "string" || !q.questionText.trim()) {
-          throw new Error(`${questionLabel} must have a non-empty questionText`);
+        if (
+          !q.questionText ||
+          typeof q.questionText !== "string" ||
+          !q.questionText.trim()
+        ) {
+          throw new Error(
+            `${questionLabel} must have a non-empty questionText`,
+          );
         }
 
         if (!["mcq", "true_false"].includes(q.type)) {
-          throw new Error(`${questionLabel} must have a valid type (mcq or true_false)`);
+          throw new Error(
+            `${questionLabel} must have a valid type (mcq or true_false)`,
+          );
         }
 
         if (typeof q.points !== "number" || q.points <= 0) {
-          throw new Error(`${questionLabel} must have a positive number for points`);
+          throw new Error(
+            `${questionLabel} must have a positive number for points`,
+          );
         }
 
         if (!Array.isArray(q.options) || q.options.length < 2) {
@@ -66,17 +78,23 @@ const examValidatorRules = [
           }
 
           if (optionIds.has(opt.optionId)) {
-            throw new Error(`${questionLabel} has duplicate optionId: ${opt.optionId}`);
+            throw new Error(
+              `${questionLabel} has duplicate optionId: ${opt.optionId}`,
+            );
           }
           optionIds.add(opt.optionId);
         }
 
         if (typeof q.correctOptionId !== "number") {
-          throw new Error(`${questionLabel} must have a numeric correctOptionId`);
+          throw new Error(
+            `${questionLabel} must have a numeric correctOptionId`,
+          );
         }
 
         if (!optionIds.has(q.correctOptionId)) {
-          throw new Error(`${questionLabel}'s correctOptionId (${q.correctOptionId}) does not match any optionId in its options`);
+          throw new Error(
+            `${questionLabel}'s correctOptionId (${q.correctOptionId}) does not match any optionId in its options`,
+          );
         }
       }
       return true;
@@ -86,9 +104,7 @@ const examValidatorRules = [
 const createExamValidator = examValidatorRules;
 
 const updateExamValidator = [
-  param("examId")
-    .isMongoId()
-    .withMessage("Exam ID must be a valid Mongo ID"),
+  param("examId").isMongoId().withMessage("Exam ID must be a valid Mongo ID"),
 
   body("subjectId")
     .optional()
@@ -98,7 +114,9 @@ const updateExamValidator = [
   body("examType")
     .optional()
     .isIn(["midterm", "final", "practical", "quiz-chapter"])
-    .withMessage("Exam type must be one of: midterm, final, practical, quiz-chapter"),
+    .withMessage(
+      "Exam type must be one of: midterm, final, practical, quiz-chapter",
+    ),
 
   body("opensAt")
     .optional()
@@ -132,16 +150,26 @@ const updateExamValidator = [
         const q = questions[i];
         const questionLabel = `Question ${i + 1}`;
 
-        if (!q.questionText || typeof q.questionText !== "string" || !q.questionText.trim()) {
-          throw new Error(`${questionLabel} must have a non-empty questionText`);
+        if (
+          !q.questionText ||
+          typeof q.questionText !== "string" ||
+          !q.questionText.trim()
+        ) {
+          throw new Error(
+            `${questionLabel} must have a non-empty questionText`,
+          );
         }
 
         if (!["mcq", "true_false"].includes(q.type)) {
-          throw new Error(`${questionLabel} must have a valid type (mcq or true_false)`);
+          throw new Error(
+            `${questionLabel} must have a valid type (mcq or true_false)`,
+          );
         }
 
         if (typeof q.points !== "number" || q.points <= 0) {
-          throw new Error(`${questionLabel} must have a positive number for points`);
+          throw new Error(
+            `${questionLabel} must have a positive number for points`,
+          );
         }
 
         if (!Array.isArray(q.options) || q.options.length < 2) {
@@ -162,17 +190,23 @@ const updateExamValidator = [
           }
 
           if (optionIds.has(opt.optionId)) {
-            throw new Error(`${questionLabel} has duplicate optionId: ${opt.optionId}`);
+            throw new Error(
+              `${questionLabel} has duplicate optionId: ${opt.optionId}`,
+            );
           }
           optionIds.add(opt.optionId);
         }
 
         if (typeof q.correctOptionId !== "number") {
-          throw new Error(`${questionLabel} must have a numeric correctOptionId`);
+          throw new Error(
+            `${questionLabel} must have a numeric correctOptionId`,
+          );
         }
 
         if (!optionIds.has(q.correctOptionId)) {
-          throw new Error(`${questionLabel}'s correctOptionId (${q.correctOptionId}) does not match any optionId in its options`);
+          throw new Error(
+            `${questionLabel}'s correctOptionId (${q.correctOptionId}) does not match any optionId in its options`,
+          );
         }
       }
       return true;
@@ -180,9 +214,7 @@ const updateExamValidator = [
 ];
 
 const examIdParamValidator = [
-  param("examId")
-    .isMongoId()
-    .withMessage("Exam ID must be a valid Mongo ID"),
+  param("examId").isMongoId().withMessage("Exam ID must be a valid Mongo ID"),
 ];
 
 module.exports = {
