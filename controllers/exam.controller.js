@@ -78,7 +78,31 @@ const createExam = async (req, res, next) => {
   });
 };
 
+const getAvailableExams = async (req, res, next) => {
+  const now = new Date();
+
+  const exams = await Exam.find({
+    department: req.user.department,
+    year: req.user.year,
+    opensAt: { $lte: now },
+    closesAt: { $gte: now },
+  })
+    .select("-question.correctOptionId")
+    .populate("subject", "name")
+    .populate("instructor", "name")
+    .sort({ opensAt: 1 });
+
+  res.status(200).json({
+    status: "success",
+    results: exams.length,
+    data: {
+      exams,
+    },
+  });
+};
+
 module.exports = {
+  getAvailableExams,
   getMyExams,
   createExam,
 };
