@@ -296,6 +296,10 @@ const updateExam = async (req, res, next) => {
 const deleteExam = async (req, res, next) => {
   const exam = await findExam(req.params.examId);
   await exam.deleteOne();
+  await Promise.all([
+    Submission.deleteMany({ examId: exam._id }),
+    ExamAttempt.deleteMany({ examId: exam._id }),
+  ]);
   res.status(204).send();
 };
 
