@@ -60,7 +60,7 @@ const examSchema = new mongoose.Schema(
     },
     examType: {
       type: String,
-      enum: ["midterm", "oral", "final", "quiz-chapter"],
+      enum: ["midterm", "oral", "final", "practical", "quiz-chapter"],
       required: true,
     },
     durationMinutes: {
@@ -79,6 +79,16 @@ const examSchema = new mongoose.Schema(
   },
   { timestamps: true },
 );
+
+examSchema.index({ instructor: 1 });
+examSchema.index({ department: 1, year: 1, opensAt: 1, closesAt: 1 });
+
+examSchema.pre("validate", function (next) {
+  if (this.opensAt && this.closesAt && this.opensAt >= this.closesAt) {
+    this.invalidate("closesAt", "closesAt must be after opensAt");
+  }
+  next();
+});
 
 const Exam = mongoose.model("Exam", examSchema);
 
