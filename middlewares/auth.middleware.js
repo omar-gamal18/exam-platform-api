@@ -4,6 +4,10 @@ const AppError = require("../utils/appError");
 const User = require("../models/user.model");
 
 const protect = async (req, res, next) => {
+  try {
+  if (!process.env.JWT_SECRET) {
+    return next(new AppError("JWT secret is not configured", 500));
+  }
   // 1) Check if token exist, if exist get
   let token;
   if (
@@ -22,7 +26,9 @@ const protect = async (req, res, next) => {
   }
 
   // 2) Verify token (no change happens, expired token)
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+    algorithms: ["HS256"],
+  });
 
   // 3) Check if user exists
   const currentUser = await User.findById(decoded.userId);
@@ -52,8 +58,17 @@ const protect = async (req, res, next) => {
     }
   }
 
-  req.user = currentUser;
-  next();
+    req.user = currentUser;
+    next();
+  } catch (error) {
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      return next(new AppError("Invalid or expired token", 401));
+    }
+    next(error);
+  }
 };
 
 const allowedTo =

@@ -14,10 +14,13 @@ const handleValidationErrorDb = (err) => {
 };
 
 const handleDuplicateFieldsDb = (err) => {
-  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
-  const message = `Duplicate field value: ${value}. Please use another value!`;
+  const fields = Object.keys(err.keyValue || {}).join(", ") || "field";
+  const message = `Duplicate value for ${fields}. Please use another value!`;
   return new AppError(message, 400);
 };
+
+const handleJwtError = () =>
+  new AppError("Invalid or expired token", 401);
 
 const sendErrorProd = (err, res) => {
   if (err.isOperational) {
@@ -27,6 +30,10 @@ const sendErrorProd = (err, res) => {
     });
   } else {
     console.error("ERROR 💥", err);
+    return res.status(500).json({
+      status: "error",
+      message: "Something went wrong on the server.",
+    });
   }
 };
 
@@ -43,12 +50,22 @@ module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 
+  if (err.type === "entity.parse.failed") {
+    err = new AppError("Malformed JSON request body", 400);
+  }
+
   if (process.env.NODE_ENV === "development") {
     sendErrorDev(err, res);
   } else {
     let error = { ...err };
 
     if (error.name === "CastError") error = handleCastErrorDb(error);
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "TokenExpiredError"
+    ) {
+      error = handleJwtError();
+    }
     if (error.code === 11000) error = handleDuplicateFieldsDb(error);
     if (error.name === "ValidationError")
       error = handleValidationErrorDb(error);

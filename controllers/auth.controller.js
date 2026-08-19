@@ -4,12 +4,23 @@ const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const User = require("../models/user.model");
 
+const publicUser = (user) => {
+  const safeUser = user.toObject();
+  delete safeUser.password;
+  return safeUser;
+};
+
 function signToken(user) {
+  if (!process.env.JWT_SECRET) {
+    throw new AppError("JWT secret is not configured", 500);
+  }
+
   return jwt.sign(
     { userId: user._id, role: user.role },
     process.env.JWT_SECRET,
     {
-      expiresIn: process.env.JWT_EXPIRES_IN,
+      expiresIn: process.env.JWT_EXPIRES_IN || "1h",
+      algorithm: "HS256",
     },
   );
 }
@@ -33,7 +44,7 @@ const signup = async (req, res, next) => {
     status: "success",
     token,
     data: {
-      user,
+      user: publicUser(user),
     },
   });
 };
@@ -57,7 +68,7 @@ const login = async (req, res, next) => {
     status: "success",
     token,
     data: {
-      user,
+      user: publicUser(user),
     },
   });
 };
