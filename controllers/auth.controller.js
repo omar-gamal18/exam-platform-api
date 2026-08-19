@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 
 const AppError = require("../utils/appError");
@@ -9,6 +10,9 @@ const publicUser = (user) => {
   delete safeUser.password;
   return safeUser;
 };
+
+const hashResetToken = (token) =>
+  crypto.createHash("sha256").update(token).digest("hex");
 
 function signToken(user) {
   if (!process.env.JWT_SECRET) {
@@ -73,4 +77,52 @@ const login = async (req, res, next) => {
   });
 };
 
-module.exports = { signup, login };
+const forgotPassword = async (req, res, next) => {
+  const user = await User.findOne({ email: req.body.email });
+  let resetToken;
+
+  if (user) {
+    resetToken = crypto.randomBytes(32).toString("hex");
+    user.passwordResetToken = hashResetToken(resetToken);
+    user.passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save({ validateBeforeSave: false });
+  }
+
+  const data = {
+    message: "If an account exists for this email, a reset link has been sent.",
+  };
+  if (resetToken && process.env.RESET_TOKEN_EXPOSE === "true") {
+    data.resetToken = resetToken;
+  }
+
+  res.status(200).json({ status: "success", data });
+};
+
+const resetPassword = async (req, res, next) => {
+  const hashedToken = hashResetToken(req.params.token);
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  }).select("+password");
+
+  if (!user) {
+    return next(new AppError("Reset token is invalid or has expired", 400));
+  }
+
+  user.password = await bcrypt.hash(req.body.password, 12);
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  user.passwordChangedAt = new Date();
+  await user.save();
+
+  const token = signToken(user);
+  res.status(200).json({
+    status: "success",
+    token,
+    data: {
+      user: publicUser(user),
+    },
+  });
+};
+
+module.exports = { forgotPassword, login, resetPassword, signup };

@@ -96,6 +96,100 @@ test("auth login rejects invalid credentials", async () => {
   assert.equal(receivedError.message, "Incorrect email or password");
 });
 
+test("forgotPassword uses a generic response for an unknown email", async () => {
+  const User = { findOne: sinon.stub().resolves(null) };
+  const { forgotPassword } = proxyquire("../controllers/auth.controller", {
+    "../models/user.model": User,
+  });
+  const res = response();
+
+  await forgotPassword({ body: { email: "unknown@example.com" } }, res, assert.fail);
+
+  assert.equal(res.statusCode, 200);
+  assert.match(res.body.data.message, /If an account exists/);
+  assert.equal(res.body.data.resetToken, undefined);
+});
+
+test("forgotPassword stores only a hashed expiring token", async () => {
+  process.env.RESET_TOKEN_EXPOSE = "true";
+  const user = {
+    save: sinon.stub().resolves(),
+  };
+  const User = { findOne: sinon.stub().resolves(user) };
+  const { forgotPassword } = proxyquire("../controllers/auth.controller", {
+    "../models/user.model": User,
+  });
+  const res = response();
+
+  await forgotPassword({ body: { email: "student@example.com" } }, res, assert.fail);
+
+  assert.equal(res.statusCode, 200);
+  assert.match(res.body.data.resetToken, /^[a-f0-9]{64}$/);
+  assert.match(user.passwordResetToken, /^[a-f0-9]{64}$/);
+  assert.notEqual(user.passwordResetToken, res.body.data.resetToken);
+  assert.ok(user.passwordResetExpires > new Date());
+  assert.equal(user.save.calledWith({ validateBeforeSave: false }), true);
+  delete process.env.RESET_TOKEN_EXPOSE;
+});
+
+test("resetPassword hashes the new password and invalidates old sessions", async () => {
+  const user = {
+    _id: "user-1",
+    role: "student",
+    password: "old-hash",
+    save: sinon.stub().resolves(),
+    toObject: () => ({ _id: "user-1", role: "student", password: "new-hash" }),
+  };
+  const User = {
+    findOne: sinon.stub().returns({
+      select: sinon.stub().resolves(user),
+    }),
+  };
+  const bcrypt = { hash: sinon.stub().resolves("new-hash") };
+  const jwt = { sign: sinon.stub().returns("new-token") };
+  const { resetPassword } = proxyquire("../controllers/auth.controller", {
+    bcrypt,
+    jsonwebtoken: jwt,
+    "../models/user.model": User,
+  });
+  const res = response();
+
+  await resetPassword(
+    { params: { token: "a".repeat(64) }, body: { password: "newpassword" } },
+    res,
+    assert.fail,
+  );
+
+  assert.equal(bcrypt.hash.calledWith("newpassword", 12), true);
+  assert.equal(user.password, "new-hash");
+  assert.equal(user.passwordResetToken, undefined);
+  assert.equal(user.passwordResetExpires, undefined);
+  assert.ok(user.passwordChangedAt instanceof Date);
+  assert.equal(res.body.token, "new-token");
+});
+
+test("resetPassword rejects an invalid or expired token", async () => {
+  const User = {
+    findOne: sinon.stub().returns({
+      select: sinon.stub().resolves(null),
+    }),
+  };
+  const { resetPassword } = proxyquire("../controllers/auth.controller", {
+    "../models/user.model": User,
+  });
+  let receivedError;
+
+  await resetPassword(
+    { params: { token: "invalid" }, body: { password: "newpassword" } },
+    response(),
+    (error) => {
+      receivedError = error;
+    },
+  );
+
+  assert.equal(receivedError.statusCode, 400);
+});
+
 test("auth validators reject weak passwords and invalid departments", async () => {
   const { signUpValidator } = require("../utils/validators/auth.validator");
   const errors = await runValidation(signUpValidator, {
@@ -120,6 +214,17 @@ test("auth validators accept a valid signup payload", async () => {
   });
 
   assert.deepEqual(errors, []);
+});
+
+test("password reset validators require matching strong passwords", async () => {
+  const { resetPasswordValidator } = require("../utils/validators/auth.validator");
+  const errors = await runValidation(resetPasswordValidator, {
+    password: "newpassword",
+    passwordConfirm: "differentpassword",
+  });
+
+  assert.equal(errors.length, 1);
+  assert.match(errors[0].msg, /do not match/);
 });
 
 test("subject update ignores fields outside the allowlist", async () => {
