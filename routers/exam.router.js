@@ -9,6 +9,7 @@ const {
   getExamById,
   getExamForStudent,
   getMyExams,
+  startExam,
   updateExam,
 } = require("../controllers/exam.controller");
 
@@ -32,6 +33,12 @@ router.post(
 );
 router.get("/mine", allowedTo("instructor"), getMyExams);
 router.get("/available", allowedTo("student"), getAvailableExams);
+router.post(
+  "/:examId/start",
+  allowedTo("student"),
+  validate(examIdParamValidator),
+  startExam,
+);
 router.get(
   "/:examId/for-student",
   allowedTo("student"),

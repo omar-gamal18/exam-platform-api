@@ -1,4 +1,5 @@
 const Exam = require("../models/exam.model");
+const ExamAttempt = require("../models/examAttempt.model");
 const Subject = require("../models/subject.model");
 const AppError = require("../utils/appError");
 
@@ -144,6 +145,41 @@ const getExamForStudent = async (req, res, next) => {
   });
 };
 
+const startExam = async (req, res, next) => {
+  const exam = await findExam(req.params.examId);
+  const now = new Date();
+
+  if (now < exam.opensAt || now > exam.closesAt) {
+    return next(new AppError("This exam is not currently open", 400));
+  }
+
+  if (
+    exam.year !== req.user.year ||
+    !exam.department.includes(req.user.department)
+  ) {
+    return next(new AppError("This exam is not available to you", 403));
+  }
+
+  try {
+    const attempt = await ExamAttempt.create({
+      examId: exam._id,
+      studentId: req.user._id,
+    });
+
+    res.status(201).json({
+      status: "success",
+      data: {
+        attempt,
+      },
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return next(new AppError("You have already started this exam", 409));
+    }
+    next(error);
+  }
+};
+
 const updateExam = async (req, res, next) => {
   const exam = await findExam(req.params.examId);
 
@@ -192,5 +228,6 @@ module.exports = {
   getAvailableExams,
   getMyExams,
   createExam,
+  startExam,
   updateExam,
 };
