@@ -10,6 +10,7 @@ const {
   getExamForStudent,
   getMyExams,
   startExam,
+  submitExam,
   updateExam,
 } = require("../controllers/exam.controller");
 
