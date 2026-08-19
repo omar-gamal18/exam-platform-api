@@ -1,6 +1,22 @@
 const AppError = require("../utils/appError");
+const Exam = require("../models/exam.model");
 const User = require("../models/user.model");
 const Subject = require("../models/subject.model");
+
+const getAllExams = async (req, res, next) => {
+  const exams = await Exam.find()
+    .populate("subject", "name department year")
+    .populate("instructor", "name email")
+    .sort({ opensAt: 1 });
+
+  res.status(200).json({
+    status: "success",
+    results: exams.length,
+    data: {
+      exams,
+    },
+  });
+};
 
 const listPendingInstructors = async (req, res, next) => {
   const users = await User.find({ role: "pending_instructor" });
@@ -99,6 +115,7 @@ const assignSubjectsToInstructor = async (req, res, next) => {
 };
 
 module.exports = {
+  getAllExams,
   listPendingInstructors,
   approveInstructor,
   rejectInstructor,
