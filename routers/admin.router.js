@@ -4,6 +4,7 @@ const { protect, allowedTo } = require("../middlewares/auth.middleware");
 
 const {
   getAllExams,
+  getAllSubmissions,
   listPendingInstructors,
   approveInstructor,
   rejectInstructor,
@@ -23,6 +24,7 @@ const router = express.Router();
 router.use(protect, allowedTo("admin"));
 
 router.get("/exams", getAllExams);
+router.get("/submissions", getAllSubmissions);
 router.get("/instructor-requests", listPendingInstructors);
 
 router.patch(

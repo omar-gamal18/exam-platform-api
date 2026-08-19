@@ -1,5 +1,6 @@
 const AppError = require("../utils/appError");
 const Exam = require("../models/exam.model");
+const Submission = require("../models/submission.model");
 const User = require("../models/user.model");
 const Subject = require("../models/subject.model");
 
@@ -14,6 +15,29 @@ const getAllExams = async (req, res, next) => {
     results: exams.length,
     data: {
       exams,
+    },
+  });
+};
+
+const getAllSubmissions = async (req, res, next) => {
+  const submissions = await Submission.find()
+    .select("studentId examId totalScore submittedAt")
+    .populate("studentId", "name email")
+    .populate({
+      path: "examId",
+      select: "subject examType instructor",
+      populate: {
+        path: "subject",
+        select: "name department year",
+      },
+    })
+    .sort({ submittedAt: -1 });
+
+  res.status(200).json({
+    status: "success",
+    results: submissions.length,
+    data: {
+      submissions,
     },
   });
 };
@@ -116,6 +140,7 @@ const assignSubjectsToInstructor = async (req, res, next) => {
 
 module.exports = {
   getAllExams,
+  getAllSubmissions,
   listPendingInstructors,
   approveInstructor,
   rejectInstructor,
