@@ -13,6 +13,11 @@ const startServer = async () => {
     );
   });
 
+  process.on("uncaughtException", (error) => {
+    console.error(`Uncaught Exception: ${error.name} ${error.message}`);
+    server.close(() => process.exit(1));
+  });
+
   process.on("unhandledRejection", (err) => {
     console.error(`Unhandled Rejection: ${err.name} ${err.message}`);
     server.close(() => process.exit(1));
