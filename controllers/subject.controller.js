@@ -27,8 +27,14 @@ const listAllSubjects = async (req, res, next) => {
 
 const updateSubject = async (req, res, next) => {
   const { id } = req.params;
+  const allowedFields = ["name", "department", "year"];
+  const updates = Object.fromEntries(
+    allowedFields
+      .filter((field) => req.body[field] !== undefined)
+      .map((field) => [field, req.body[field]]),
+  );
 
-  const subject = await Subject.findByIdAndUpdate(id, req.body, {
+  const subject = await Subject.findByIdAndUpdate(id, updates, {
     returnDocument: "after",
     runValidators: true,
   });
