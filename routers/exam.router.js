@@ -18,6 +18,7 @@ const validate = require("../middlewares/validate");
 const {
   createExamValidator,
   examIdParamValidator,
+  submitExamValidator,
   updateExamValidator,
 } = require("../utils/validators/exam.validator");
 
@@ -38,6 +39,12 @@ router.post(
   allowedTo("student"),
   validate(examIdParamValidator),
   startExam,
+);
+router.post(
+  "/:examId/submit",
+  allowedTo("student"),
+  validate(submitExamValidator),
+  submitExam,
 );
 router.get(
   "/:examId/for-student",

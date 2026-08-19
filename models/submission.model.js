@@ -28,3 +28,7 @@ const submissionSchema = new mongoose.Schema({
   totalScore: { type: Number, required: true, min: 0 },
   submittedAt: { type: Date, required: true, default: Date.now },
 });
+
+submissionSchema.index({ examId: 1, studentId: 1 }, { unique: true });
+
+module.exports = mongoose.model("Submission", submissionSchema);

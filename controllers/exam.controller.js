@@ -1,5 +1,6 @@
 const Exam = require("../models/exam.model");
 const ExamAttempt = require("../models/examAttempt.model");
+const Submission = require("../models/submission.model");
 const Subject = require("../models/subject.model");
 const AppError = require("../utils/appError");
 
@@ -180,6 +181,83 @@ const startExam = async (req, res, next) => {
   }
 };
 
+const submitExam = async (req, res, next) => {
+  const exam = await findExam(req.params.examId);
+  const attempt = await ExamAttempt.findOne({
+    examId: exam._id,
+    studentId: req.user._id,
+  });
+
+  if (!attempt) {
+    return next(
+      new AppError("You must start this exam before submitting", 400),
+    );
+  }
+
+  const deadline = new Date(
+    Math.min(
+      attempt.startedAt.getTime() + exam.durationMinutes * 60 * 1000,
+      exam.closesAt.getTime(),
+    ),
+  );
+  if (new Date() > deadline) {
+    return next(new AppError("The submission deadline has passed", 400));
+  }
+
+  const answersByQuestionId = new Map();
+  for (const answer of req.body.answers) {
+    if (answersByQuestionId.has(answer.questionId)) {
+      return next(new AppError("Each question can only be answered once", 400));
+    }
+    answersByQuestionId.set(answer.questionId, answer.selectedOptionId);
+  }
+
+  if (answersByQuestionId.size !== exam.question.length) {
+    return next(new AppError("You must answer every question", 400));
+  }
+
+  const gradedAnswers = [];
+  let totalScore = 0;
+  for (const question of exam.question) {
+    const selectedOptionId = answersByQuestionId.get(question.questionId);
+    if (selectedOptionId === undefined) {
+      return next(new AppError("Answer contains an unknown question", 400));
+    }
+
+    if (
+      !question.options.some((option) => option.optionId === selectedOptionId)
+    ) {
+      return next(new AppError("Answer contains an invalid option", 400));
+    }
+
+    const isCorrect = selectedOptionId === question.correctOptionId;
+    const pointsEarned = isCorrect ? question.points : 0;
+    totalScore += pointsEarned;
+    gradedAnswers.push({
+      questionId: question.questionId,
+      selectedOptionId,
+      isCorrect,
+      pointsEarned,
+    });
+  }
+
+  try {
+    const submission = await Submission.create({
+      examId: exam._id,
+      studentId: req.user._id,
+      answers: gradedAnswers,
+      totalScore,
+    });
+
+    res.status(201).json({ status: "success", data: { submission } });
+  } catch (error) {
+    if (error.code === 11000) {
+      return next(new AppError("You have already submitted this exam", 409));
+    }
+    next(error);
+  }
+};
+
 const updateExam = async (req, res, next) => {
   const exam = await findExam(req.params.examId);
 
@@ -229,5 +307,6 @@ module.exports = {
   getMyExams,
   createExam,
   startExam,
+  submitExam,
   updateExam,
 };

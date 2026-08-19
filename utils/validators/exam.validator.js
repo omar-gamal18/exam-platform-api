@@ -217,8 +217,24 @@ const examIdParamValidator = [
   param("examId").isMongoId().withMessage("Exam ID must be a valid Mongo ID"),
 ];
 
+const submitExamValidator = [
+  ...examIdParamValidator,
+  body("answers")
+    .isArray({ min: 1 })
+    .withMessage("answers must be a non-empty array"),
+  body("answers.*.questionId")
+    .isInt({ min: 1 })
+    .withMessage("Each answer must have a positive questionId")
+    .toInt(),
+  body("answers.*.selectedOptionId")
+    .isInt({ min: 1 })
+    .withMessage("Each answer must have a positive selectedOptionId")
+    .toInt(),
+];
+
 module.exports = {
   createExamValidator,
   updateExamValidator,
   examIdParamValidator,
+  submitExamValidator,
 };
