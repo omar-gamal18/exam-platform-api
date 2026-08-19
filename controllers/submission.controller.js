@@ -1,3 +1,4 @@
+const Exam = require("../models/exam.model");
 const Submission = require("../models/submission.model");
 const AppError = require("../utils/appError");
 
@@ -75,7 +76,35 @@ const getMySubmissionDetail = async (req, res, next) => {
   });
 };
 
+const getExamSubmissions = async (req, res, next) => {
+  const exam = await Exam.findById(req.params.examId);
+  if (!exam) {
+    return next(new AppError("Exam not found", 404));
+  }
+
+  const isOwner = exam.instructor.toString() === req.user._id.toString();
+  if (req.user.role !== "admin" && !isOwner) {
+    return next(
+      new AppError("You are not authorized to view these submissions", 403),
+    );
+  }
+
+  const submissions = await Submission.find({ examId: exam._id })
+    .select("studentId totalScore submittedAt")
+    .populate("studentId", "name email")
+    .sort({ submittedAt: -1 });
+
+  res.status(200).json({
+    status: "success",
+    results: submissions.length,
+    data: {
+      submissions,
+    },
+  });
+};
+
 module.exports = {
+  getExamSubmissions,
   getMySubmissions,
   getMySubmissionDetail,
 };

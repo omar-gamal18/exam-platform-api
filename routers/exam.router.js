@@ -13,6 +13,7 @@ const {
   submitExam,
   updateExam,
 } = require("../controllers/exam.controller");
+const { getExamSubmissions } = require("../controllers/submission.controller");
 
 const validate = require("../middlewares/validate");
 
@@ -52,6 +53,12 @@ router.get(
   allowedTo("student"),
   validate(examIdParamValidator),
   getExamForStudent,
+);
+router.get(
+  "/:examId/submissions",
+  allowedTo("instructor", "admin"),
+  validate(examIdParamValidator),
+  getExamSubmissions,
 );
 router.get(
   "/:examId",
