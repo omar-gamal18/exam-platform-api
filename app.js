@@ -4,12 +4,7 @@ const helmet = require("helmet");
 const hpp = require("hpp");
 const rateLimit = require("express-rate-limit");
 
-const authRouter = require("./routers/auth.router");
-const userRouter = require("./routers/user.router");
-const examRouter = require("./routers/exam.router");
-const subjectRouter = require("./routers/subject.routes");
-const adminRouter = require("./routers/admin.router");
-const submissionRouter = require("./routers/submission.router");
+const apiRouter = require("./routers");
 const errorMiddleware = require("./middlewares/error.middleware");
 const AppError = require("./utils/appError");
 
@@ -50,12 +45,7 @@ app.use(
   }),
 );
 
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/users", userRouter);
-app.use("/api/v1/exams", examRouter);
-app.use("/api/v1/subjects", subjectRouter);
-app.use("/api/v1/admin", adminRouter);
-app.use("/api/v1/submissions", submissionRouter);
+app.use("/api/v1", apiRouter);
 
 app.use((req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
